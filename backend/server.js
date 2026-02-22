@@ -27,6 +27,7 @@ app.use(cors({
       origin === 'http://localhost' ||
       origin === 'capacitor://localhost' ||
       origin.includes('localhost:3000') ||
+      origin.endsWith('.vercel.app') ||
       origin.startsWith('http://192.168.')) {
       callback(null, true);
     } else {
@@ -123,6 +124,12 @@ async function connectDB() {
     console.warn('⚠️  Falling back to embedded MongoDB — DATA WILL BE LOST ON RESTART');
   }
 
+  if (process.env.NODE_ENV === 'production' && !isRealAtlas) {
+    console.error('❌ MONGODB_URI is not set or invalid in production!');
+    console.warn('⚠️  Server will start but DB operations will fail.');
+    return;
+  }
+
   const { MongoMemoryServer } = require('mongodb-memory-server');
   const mongod = await MongoMemoryServer.create();
   await mongoose.connect(mongod.getUri());
@@ -132,7 +139,8 @@ async function connectDB() {
 
 connectDB().catch(err => {
   console.error('❌ MongoDB fatal error:', err.message);
-  process.exit(1);
+  // Do not process.exit(1) in production serverless environments
+  if (process.env.NODE_ENV !== 'production') process.exit(1);
 });
 
 // ── Export/Run ────────────────────────────────────────────────────────────────
