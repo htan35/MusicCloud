@@ -197,7 +197,9 @@ function AppShell() {
                     <Library
                         key={`${refreshKey}-${selectedPlaylistId}`}
                         activeView={activeView}
+                        setActiveView={setActiveView}
                         selectedPlaylistId={selectedPlaylistId}
+                        setSelectedPlaylistId={setSelectedPlaylistId}
                         onSelectPlaylist={(id) => { setSelectedPlaylistId(id); setActiveView('playlist'); }}
                         onUpload={() => setShowUpload(true)}
                         theme={theme}

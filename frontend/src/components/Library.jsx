@@ -21,7 +21,7 @@ import {
 } from '@dnd-kit/sortable';
 import { restrictToVerticalAxis, restrictToWindowEdges } from '@dnd-kit/modifiers';
 
-export default function Library({ activeView, selectedPlaylistId, onSelectPlaylist, onUpload, theme, setTheme, isMobile, refreshKey }) {
+export default function Library({ activeView, setActiveView, selectedPlaylistId, setSelectedPlaylistId, onSelectPlaylist, onUpload, theme, setTheme, isMobile, refreshKey }) {
     const { user, logout } = useAuth();
     const [songs, setSongs] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -457,8 +457,30 @@ export default function Library({ activeView, selectedPlaylistId, onSelectPlayli
                             </SortableContext>
                         </DndContext>
 
+                        {/* Mobile Quick Access (Liked Songs) */}
+                        {isMobile && !selectedPlaylistId && activeView === 'library' && !selectedAlbum && !search && (
+                            <>
+                                <h2 className="text-lg font-black tracking-tight text-[var(--text-main)] mt-6 mb-4">Quick Access</h2>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <button
+                                        onClick={() => { setSelectedPlaylistId(null); setActiveView('liked'); }}
+                                        className="flex flex-col gap-2 p-3 rounded-2xl transition-all border border-[var(--border-main)] hover:bg-[var(--bg-card)] text-left group relative overflow-hidden"
+                                        style={{ background: 'linear-gradient(135deg, #fc3c44, #ff6b6b)' }}
+                                    >
+                                        <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center mb-1">
+                                            <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                                            </svg>
+                                        </div>
+                                        <p className="text-sm font-bold text-white tracking-tight">Liked Songs</p>
+                                        <p className="text-[10px] font-medium text-white/70">Your favorites</p>
+                                    </button>
+                                </div>
+                            </>
+                        )}
+
                         {/* Albums grid (only on home/library views and if not filtering/viewing album) */}
-                        {!selectedPlaylistId && activeView !== 'liked' && !selectedAlbum && !search && albums.length > 0 && (
+                        {!selectedPlaylistId && (activeView === 'home' || activeView === 'library') && !selectedAlbum && !search && albums.length > 0 && (
                             <>
                                 <h2 className="text-lg font-black tracking-tight text-[var(--text-main)] mt-10 mb-4">Your Collection</h2>
                                 <div className={`grid gap-4 ${isMobile ? 'grid-cols-2' : ''}`} style={!isMobile ? { gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))' } : {}}>
