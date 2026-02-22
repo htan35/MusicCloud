@@ -11,12 +11,17 @@ const authRoutes = require('./routes/auth');
 const songRoutes = require('./routes/songs');
 const playlistRoutes = require('./routes/playlists');
 const lyricsRoutes = require('./routes/lyrics');
+const { guestAuth } = require('./middleware/guest');
 
 const app = express();
 
 // ── Vercel / Proxy trust ─────────────────────────────────────────────────────
 // Required for express-rate-limit and 'secure' cookies on Vercel
 app.set('trust proxy', 1);
+
+// ── Vercel Parallel Path ─────────────────────────────────────────────────────
+// Enable Guest Mode if process.env.GUEST_MODE is true
+app.use(guestAuth);
 
 // ── Security headers ───────────────────────────────────────────────────────────
 app.use(helmet({

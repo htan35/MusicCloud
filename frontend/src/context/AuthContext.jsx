@@ -32,8 +32,17 @@ export function AuthProvider({ children }) {
         setUser(null);
     }, []);
 
+    const loginAsGuest = useCallback(() => {
+        setUser({
+            _id: '000000000000000000000001',
+            username: 'Guest_User',
+            email: 'guest@musiccloud.internal',
+            isGuest: true
+        });
+    }, []);
+
     return (
-        <AuthContext.Provider value={{ user, loading, register, login, logout }}>
+        <AuthContext.Provider value={{ user, loading, register, login, logout, loginAsGuest }}>
             {children}
         </AuthContext.Provider>
     );

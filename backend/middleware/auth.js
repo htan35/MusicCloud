@@ -17,6 +17,8 @@ async function requireAuth(req, res, next) {
                 : null);
 
         if (!token) {
+            // Parallel Path for Vercel Guest Mode: Skip token check if user is already injected (via guestAuth)
+            if (process.env.GUEST_MODE === 'true' && req.user) return next();
             return res.status(401).json({ success: false, error: 'Authentication required' });
         }
 

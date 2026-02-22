@@ -172,6 +172,18 @@ export default function AuthPage() {
                         </button>
                     </form>
 
+                    {/* Vercel Parallel Path: Guest Mode */}
+                    <div className="mt-4 pt-4 border-t border-white/5">
+                        <button onClick={() => { const { loginAsGuest } = useAuth(); loginAsGuest(); }}
+                            className="w-full py-2.5 rounded-xl font-medium text-xs text-white/40 hover:text-white/70 transition-all border border-white/5 hover:border-white/10 hover:bg-white/5 flex items-center justify-center gap-2"
+                        >
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                            Continue as Guest
+                        </button>
+                    </div>
+
                     {/* Switch mode */}
                     <p className="text-center text-xs mt-5" style={{ color: 'rgba(245,245,247,0.35)' }}>
                         {mode === 'login' ? "Don't have an account? " : 'Already have an account? '}
