@@ -315,7 +315,7 @@ export default function FullscreenPlayer({ theme, onClose, isMobile }) {
 
     return (
         <div
-            className="fixed inset-0 z-[100] flex flex-col text-[var(--text-main)]"
+            className="fixed inset-0 z-[9999] flex flex-col text-[var(--text-main)]"
             style={{
                 background: 'var(--bg-fullscreen)',
                 transition: 'background 0.5s ease',

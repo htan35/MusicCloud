@@ -8,7 +8,8 @@ export default function PlayerControls({ onFullscreen, isMobile }) {
         mode, shuffle, loop,
         togglePlay, seek, skipNext, skipPrev,
         setVolume, setIsMuted, setMode,
-        toggleShuffle, cycleLoop
+        toggleShuffle, cycleLoop,
+        setShowFullscreen
     } = usePlayer();
 
     const progress = duration ? (currentTime / duration) * 100 : 0;
@@ -32,7 +33,7 @@ export default function PlayerControls({ onFullscreen, isMobile }) {
         return (
             <div
                 className="fixed left-0 right-0 z-40 px-4 pb-3 pt-3 cursor-pointer"
-                onClick={onFullscreen}
+                onClick={() => setShowFullscreen(true)}
                 style={{
                     bottom: 'var(--nav-bottom-height)',
                     background: 'var(--bg-player)',
@@ -245,7 +246,7 @@ export default function PlayerControls({ onFullscreen, isMobile }) {
 
                     {/* Fullscreen */}
                     <button
-                        onClick={onFullscreen}
+                        onClick={() => setShowFullscreen(true)}
                         className="transition-colors"
                         style={{ color: 'var(--text-muted-2)' }}
                         onMouseEnter={e => e.currentTarget.style.color = 'var(--text-main)'}
