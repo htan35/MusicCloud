@@ -135,16 +135,14 @@ export default function SongCard({
 
                 {/* Title and Metadata */}
                 <div className="flex-1 min-w-0">
-                    <div className="flex items-start gap-2 pt-0.5">
-                        <span className={`text-sm font-bold tracking-tight transition-colors ${isActive ? 'text-[var(--accent)]' : 'text-[var(--text-main)] underline-offset-2'}`}>
+                    <div className="flex items-center gap-2">
+                        <span className={`text-sm font-bold truncate tracking-tight transition-colors ${isActive ? 'text-[var(--accent)]' : 'text-[var(--text-main)]'}`}>
                             {song.title}
                         </span>
                         {song.videoUrl && <span className="text-[9px] px-1 rounded bg-[var(--success-muted)] text-[var(--success)] font-black uppercase">MV</span>}
                         {song.syncedLyrics?.length > 0 && <span className="text-[9px] px-1 rounded bg-[var(--warning-muted)] text-[var(--warning)] font-black uppercase">LRC</span>}
                     </div>
-                    <div className="text-[10px] sm:hidden font-medium leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-                        {song.artist} • {song.album || 'Unknown Album'}
-                    </div>
+                    {/* Hide artist/album on mobile for maximum symmetry */}
                 </div>
 
                 {/* Artist Desktop */}
