@@ -256,6 +256,7 @@ function AppShell() {
                     <MobileNav
                         activeView={activeView}
                         setActiveView={setActiveView}
+                        setSelectedPlaylistId={setSelectedPlaylistId}
                     />
                 </>
             )}

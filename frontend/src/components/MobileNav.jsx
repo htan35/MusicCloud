@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function MobileNav({ activeView, setActiveView, onOpenLibrary }) {
+export default function MobileNav({ activeView, setActiveView, setSelectedPlaylistId }) {
     const tabs = [
         { id: 'home', label: 'Home', icon: <HomeIcon /> },
         { id: 'search', label: 'Search', icon: <SearchIcon /> },
@@ -20,7 +20,10 @@ export default function MobileNav({ activeView, setActiveView, onOpenLibrary }) 
             {tabs.map(tab => (
                 <button
                     key={tab.id}
-                    onClick={() => setActiveView(tab.id)}
+                    onClick={() => {
+                        setActiveView(tab.id);
+                        if (setSelectedPlaylistId) setSelectedPlaylistId(null);
+                    }}
                     className="flex flex-col items-center justify-center gap-1 w-full h-full transition-colors"
                     style={{ color: activeView === tab.id ? 'var(--accent)' : 'var(--text-muted)' }}
                 >
