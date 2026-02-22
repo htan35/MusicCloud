@@ -39,7 +39,11 @@ class ErrorBoundary extends React.Component {
                         </svg>
                     </div>
                     <h1 className="text-xl font-black mb-2 tracking-tight">Something went wrong</h1>
-                    <p className="text-sm text-white/50 mb-8 max-w-xs">{this.state.error?.message || 'The application crashed unexpectedly.'}</p>
+                    <p className="text-sm text-white/50 mb-8 max-w-xs">
+                        {typeof this.state.error?.message === 'string'
+                            ? this.state.error.message
+                            : 'The application crashed unexpectedly.'}
+                    </p>
                     <button
                         onClick={() => window.location.reload()}
                         className="px-6 py-2.5 bg-white text-black rounded-full font-bold text-sm hover:scale-105 transition-transform"

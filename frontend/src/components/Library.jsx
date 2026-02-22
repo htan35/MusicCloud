@@ -338,7 +338,7 @@ export default function Library({ activeView, selectedPlaylistId, onUpload, them
             <div className="flex-1 overflow-y-auto px-6 pb-6" style={{ scrollbarWidth: 'thin' }}>
                 {error && (
                     <div className="mt-4 p-3 rounded-xl text-sm" style={{ background: 'rgba(255,69,58,0.1)', color: '#ff453a' }}>
-                        {error}
+                        {typeof error === 'string' ? error : (error?.message || JSON.stringify(error))}
                     </div>
                 )}
 

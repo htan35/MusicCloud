@@ -147,7 +147,7 @@ export default function AuthPage() {
                         {/* Error */}
                         {error && (
                             <div className="rounded-xl p-3 text-sm" style={{ background: 'rgba(255,69,58,0.12)', color: '#ff453a', border: '1px solid rgba(255,69,58,0.2)' }}>
-                                {error}
+                                {typeof error === 'string' ? error : (error?.message || JSON.stringify(error))}
                             </div>
                         )}
 
