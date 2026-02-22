@@ -31,8 +31,10 @@ export default function PlayerControls({ onFullscreen, isMobile }) {
     if (isMobile) {
         return (
             <div
-                className="fixed bottom-0 left-0 right-0 z-40 px-4 pb-[calc(var(--safe-area-bottom)+12px)] pt-3"
+                className="fixed left-0 right-0 z-40 px-4 pb-3 pt-3 cursor-pointer"
+                onClick={onFullscreen}
                 style={{
+                    bottom: 'var(--nav-bottom-height)',
                     background: 'var(--bg-player)',
                     backdropFilter: 'blur(var(--glass-blur))',
                     WebkitBackdropFilter: 'blur(var(--glass-blur))',
@@ -47,7 +49,7 @@ export default function PlayerControls({ onFullscreen, isMobile }) {
                     />
                 </div>
 
-                <div className="flex items-center justify-between" onClick={onFullscreen}>
+                <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3 min-w-0 flex-1">
                         <img
                             src={`${currentSong.coverUrl}?t=${new Date(currentSong.updatedAt || currentSong.createdAt).getTime()}`}

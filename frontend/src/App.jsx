@@ -204,8 +204,10 @@ function AppShell() {
                         isMobile={isMobile}
                     />
 
-                    {/* Bottom player bar (Contained in center column) */}
-                    <PlayerControls onFullscreen={() => setShowFullscreen(true)} isMobile={isMobile} />
+                    {/* Bottom player bar (Desktop only, inside center column) */}
+                    {!isMobile && (
+                        <PlayerControls onFullscreen={() => setShowFullscreen(true)} isMobile={isMobile} />
+                    )}
                 </div>
 
                 {/* Right: Now Playing (Hidden on mobile) */}
@@ -240,15 +242,19 @@ function AppShell() {
                 <FullscreenPlayer
                     theme={theme}
                     onClose={() => setShowFullscreen(false)}
+                    isMobile={isMobile}
                 />
             )}
 
-            {/* Mobile Bottom Navigation */}
+            {/* Mobile Bottom Navigation & Mini Player */}
             {isMobile && (
-                <MobileNav
-                    activeView={activeView}
-                    setActiveView={setActiveView}
-                />
+                <>
+                    <PlayerControls onFullscreen={() => setShowFullscreen(true)} isMobile={isMobile} />
+                    <MobileNav
+                        activeView={activeView}
+                        setActiveView={setActiveView}
+                    />
+                </>
             )}
         </>
     );

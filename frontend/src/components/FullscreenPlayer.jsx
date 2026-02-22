@@ -6,7 +6,7 @@ import { formatTime } from '../utils/format';
 import PlaylistModal from './PlaylistModal';
 import VideoPlayer from './VideoPlayer';
 
-export default function FullscreenPlayer({ theme, onClose }) {
+export default function FullscreenPlayer({ theme, onClose, isMobile }) {
     const {
         currentSong, isPlaying, isLoading,
         currentTime, duration, volume, isMuted,
@@ -352,12 +352,12 @@ export default function FullscreenPlayer({ theme, onClose }) {
             </button>
 
             {/* ── Main content ─────────────────────────────────────────── */}
-            <div className="relative flex-1 flex flex-col justify-center px-8 pb-4 pt-14 overflow-hidden">
-                <div className={`flex justify-center transition-all duration-700 ${isImmersive && mode === 'video' ? 'w-full max-w-none px-0' : 'w-full max-w-7xl px-8'} gap-20 mx-auto`} style={{ maxHeight: 'calc(100vh - 200px)' }}>
+            <div className={`relative flex-1 flex flex-col justify-center ${isMobile ? 'px-4 pb-2 pt-14' : 'px-8 pb-4 pt-14'} overflow-hidden`}>
+                <div className={`flex ${isMobile ? 'flex-col overflow-y-auto' : 'justify-center'} transition-all duration-700 ${isImmersive && mode === 'video' ? 'w-full max-w-none px-0' : 'w-full max-w-7xl px-8'} ${isMobile ? 'gap-8' : 'gap-20'} mx-auto`} style={{ maxHeight: isMobile ? 'none' : 'calc(100vh - 200px)' }}>
 
                     {/* ── Left: Album Art + Song Info ─────────────────────── */}
-                    <div className={`flex flex-col items-start flex-shrink-0 transition-all duration-700 ${isImmersive && mode === 'video' ? 'w-full' : 'w-[480px]'}`}>
-                        <div className={`relative aspect-square shadow-2xl rounded-2xl overflow-hidden bg-[var(--bg-card)] transition-all duration-700 ${isImmersive && mode === 'video' ? 'w-full max-h-[82vh] aspect-video mx-auto' : 'w-full h-[480px]'}`}>
+                    <div className={`flex flex-col items-start flex-shrink-0 transition-all duration-700 ${isImmersive && mode === 'video' || isMobile ? 'w-full' : 'w-[480px]'}`}>
+                        <div className={`relative aspect-square shadow-2xl rounded-2xl overflow-hidden bg-[var(--bg-card)] transition-all duration-700 ${isImmersive && mode === 'video' ? 'w-full max-h-[82vh] aspect-video mx-auto' : isMobile ? 'w-full max-h-[40vh] mx-auto' : 'w-full h-[480px]'}`}>
                             <div className={`absolute inset-0 transition-opacity duration-500 ${mode === 'video' ? 'opacity-0' : 'opacity-100'}`}>
                                 {currentSong.coverUrl ? (
                                     <img
@@ -401,7 +401,7 @@ export default function FullscreenPlayer({ theme, onClose }) {
                             )}
                         </div>
 
-                        <div className={`mt-6 flex items-start justify-between gap-3 px-1 ${isImmersive && mode === 'video' ? 'w-full' : 'w-full max-w-[480px]'}`}>
+                        <div className={`mt-6 flex items-start justify-between gap-3 px-1 ${(isImmersive && mode === 'video') || isMobile ? 'w-full' : 'w-full max-w-[480px]'}`}>
                             <div className="min-w-0 flex-1">
                                 <h2 className="text-2xl font-black tracking-tight text-[var(--text-main)] truncate">{currentSong.title}</h2>
                                 <p className="text-base mt-1 truncate font-medium" style={{ color: 'var(--text-muted)' }}>
@@ -440,7 +440,7 @@ export default function FullscreenPlayer({ theme, onClose }) {
                             </div>
                         </div>
 
-                        <div className={`mt-8 mb-2 ${isImmersive && mode === 'video' ? 'w-full' : 'w-full max-w-[480px]'}`}>
+                        <div className={`mt-8 mb-2 ${(isImmersive && mode === 'video') || isMobile ? 'w-full' : 'w-full max-w-[480px]'}`}>
                             <input type="range" min="0" max="100" value={progress} onChange={handleSeek} className="progress-bar w-full" style={{ '--progress': `${progress}%` }} />
                             <div className="flex justify-between mt-1">
                                 <span className="font-mono text-xs" style={{ color: 'var(--text-muted)' }}>{formatTime(currentTime)}</span>
@@ -478,8 +478,8 @@ export default function FullscreenPlayer({ theme, onClose }) {
                     </div>
 
                     {/* ── Right: Lyrics Header + Content ───────────────────── */}
-                    <div className={`flex-1 h-full min-w-0 flex flex-col relative transition-all duration-700 ${isImmersive && mode === 'video' ? 'hidden' : ''}`} style={{ maxHeight: 'calc(100vh - 200px)' }}>
-                        <div className="flex items-center gap-6 mb-4 px-0 flex-shrink-0">
+                    <div className={`flex-1 min-w-0 flex flex-col relative transition-all duration-700 ${isImmersive && mode === 'video' ? 'hidden' : ''} ${isMobile ? 'h-auto mt-4' : 'h-full'}`} style={{ maxHeight: isMobile ? 'none' : 'calc(100vh - 200px)' }}>
+                        <div className={`flex items-center gap-6 mb-4 px-0 flex-shrink-0 ${isMobile ? 'overflow-x-auto no-scrollbar' : ''}`}>
                             {/* Left: Tabs */}
                             <div className="flex gap-6 items-center flex-shrink-0">
                                 {[
@@ -710,14 +710,11 @@ export default function FullscreenPlayer({ theme, onClose }) {
                                                     const distance = Math.abs(index - currentLyricIndex);
                                                     const isActive = index === currentLyricIndex;
 
-                                                    const opacity = isActive ? 1 : distance === 1 ? 0.6 : 0.4;
-                                                    const scale = isActive ? 1.08 : distance === 1 ? 0.98 : 0.95;
-
                                                     return (
                                                         <button key={item.key} ref={isActive ? activeRef : null} onClick={() => seek(lyric.time)}
                                                             className="w-full text-left block leading-tight my-6 transition-all duration-700 origin-left"
                                                             style={{
-                                                                fontSize: isActive ? 40 : 28,
+                                                                fontSize: isActive ? (isMobile ? 28 : 40) : (isMobile ? 20 : 28),
                                                                 fontWeight: isActive ? 800 : 700,
                                                                 color: isActive ? 'var(--text-main)' : 'var(--text-muted-2)',
                                                                 opacity: opacity,
