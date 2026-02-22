@@ -22,7 +22,7 @@ import {
 import { restrictToVerticalAxis, restrictToWindowEdges } from '@dnd-kit/modifiers';
 
 export default function Library({ activeView, selectedPlaylistId, onUpload, theme, setTheme }) {
-    const { user } = useAuth();
+    const { user, logout } = useAuth();
     const [songs, setSongs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
@@ -303,7 +303,7 @@ export default function Library({ activeView, selectedPlaylistId, onUpload, them
                                 boxShadow: '0 4px 12px var(--accent-muted)'
                             }}
                         >
-                            {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                            {user?.username ? user.username.charAt(0).toUpperCase() : 'U'}
                         </button>
 
                         {/* Simple hover dropdown for logout etc */}
@@ -312,13 +312,13 @@ export default function Library({ activeView, selectedPlaylistId, onUpload, them
                                 style={{ background: 'var(--bg-sidebar)', backdropFilter: 'blur(20px)' }}>
                                 <div className="px-3 py-2">
                                     <p className="text-[10px] font-bold text-[var(--text-muted-2)] uppercase tracking-widest">Account</p>
-                                    <p className="text-sm font-bold truncate text-[var(--text-main)]">{user?.name || 'User'}</p>
+                                    <p className="text-sm font-bold truncate text-[var(--text-main)]">{user?.username || 'User'}</p>
                                     <p className="text-[10px] text-[var(--text-muted)] truncate">{user?.email || ''}</p>
                                 </div>
                                 <div className="h-px bg-[var(--border-main)] mx-1 my-1" />
                                 <button
-                                    onClick={() => {
-                                        localStorage.removeItem('token');
+                                    onClick={async () => {
+                                        await logout();
                                         window.location.reload();
                                     }}
                                     className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-[#ff453a] hover:bg-[#ff453a15] transition-all flex items-center gap-2"

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { PlayerProvider, usePlayer } from './context/PlayerContext';
 import AudioEngine from './components/AudioEngine';
@@ -17,6 +17,41 @@ const SIDEBAR_DEFAULT = 220;
 const RIGHT_MIN = 240;
 const RIGHT_MAX = 420;
 const RIGHT_DEFAULT = 280;
+
+class ErrorBoundary extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = { hasError: false, error: null };
+    }
+    static getDerivedStateFromError(error) {
+        return { hasError: true, error };
+    }
+    componentDidCatch(error, errorInfo) {
+        console.error("App Crash:", error, errorInfo);
+    }
+    render() {
+        if (this.state.hasError) {
+            return (
+                <div className="min-h-screen flex flex-col items-center justify-center bg-[#0f0f10] text-white p-6 text-center">
+                    <div className="w-16 h-16 rounded-2xl bg-[#fc3c44] flex items-center justify-center mb-6 shadow-lg shadow-[#fc3c4440]">
+                        <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                    </div>
+                    <h1 className="text-xl font-black mb-2 tracking-tight">Something went wrong</h1>
+                    <p className="text-sm text-white/50 mb-8 max-w-xs">{this.state.error?.message || 'The application crashed unexpectedly.'}</p>
+                    <button
+                        onClick={() => window.location.reload()}
+                        className="px-6 py-2.5 bg-white text-black rounded-full font-bold text-sm hover:scale-105 transition-transform"
+                    >
+                        Reload MusicCloud
+                    </button>
+                </div>
+            );
+        }
+        return this.props.children;
+    }
+}
 
 function AppShell() {
     const { user, loading } = useAuth();
@@ -195,10 +230,12 @@ function AppShell() {
 
 export default function App() {
     return (
-        <AuthProvider>
-            <PlayerProvider>
-                <AppShell />
-            </PlayerProvider>
-        </AuthProvider>
+        <ErrorBoundary>
+            <AuthProvider>
+                <PlayerProvider>
+                    <AppShell />
+                </PlayerProvider>
+            </AuthProvider>
+        </ErrorBoundary>
     );
 }
