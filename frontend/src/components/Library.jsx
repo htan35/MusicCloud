@@ -64,8 +64,10 @@ export default function Library({ activeView, selectedPlaylistId, onUpload, them
                 const data = await songApi.getAll();
                 setSongs(data.songs || []);
             }
-        } catch {
-            setError('Failed to load songs. Is the backend running?');
+        } catch (err) {
+            const msg = err.response?.data?.error || err.message || 'Unknown error';
+            setError(`Failed to load songs: ${msg}`);
+            console.error('Library Load Error:', err);
         } finally {
             setLoading(false);
         }
