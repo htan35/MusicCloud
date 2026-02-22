@@ -21,7 +21,7 @@ import {
 } from '@dnd-kit/sortable';
 import { restrictToVerticalAxis, restrictToWindowEdges } from '@dnd-kit/modifiers';
 
-export default function Library({ activeView, selectedPlaylistId, onUpload, theme, setTheme }) {
+export default function Library({ activeView, selectedPlaylistId, onUpload, theme, setTheme, isMobile }) {
     const { user, logout } = useAuth();
     const [songs, setSongs] = useState([]);
     const [loading, setLoading] = useState(true);
