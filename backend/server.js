@@ -14,6 +14,10 @@ const lyricsRoutes = require('./routes/lyrics');
 
 const app = express();
 
+// ── Vercel / Proxy trust ─────────────────────────────────────────────────────
+// Required for express-rate-limit and 'secure' cookies on Vercel
+app.set('trust proxy', 1);
+
 // ── Security headers ───────────────────────────────────────────────────────────
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' }
@@ -22,17 +26,17 @@ app.use(helmet({
 // ── CORS ───────────────────────────────────────────────────────────────────────
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow if no origin (mobile apps, curl) or if it's localhost/local network
+    // Allow if no origin (mobile) or if it's a known environment
     if (!origin ||
       origin === 'http://localhost' ||
       origin === 'capacitor://localhost' ||
       origin.includes('localhost:3000') ||
       origin.endsWith('.vercel.app') ||
       origin.startsWith('http://192.168.')) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
+      return callback(null, true);
     }
+    // Don't throw Error() - it triggers the global error handler (500)
+    callback(null, false);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],

@@ -8,7 +8,7 @@ const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'change-this-secret-in-production';
 const COOKIE_OPTS = {
     httpOnly: true,
-    sameSite: 'strict',
+    sameSite: 'lax',
     secure: process.env.NODE_ENV === 'production',
     maxAge: 7 * 24 * 60 * 60 * 1000   // 7 days
 };
@@ -96,7 +96,11 @@ router.post('/login', validateLogin, async (req, res) => {
 
 // ── POST /api/auth/logout ──────────────────────────────────────────────────────
 router.post('/logout', (req, res) => {
-    res.clearCookie('token', { httpOnly: true, sameSite: 'strict' });
+    res.clearCookie('token', {
+        httpOnly: true,
+        sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production'
+    });
     res.json({ success: true, message: 'Logged out' });
 });
 
