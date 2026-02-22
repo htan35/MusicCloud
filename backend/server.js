@@ -19,9 +19,21 @@ const app = express();
 // Required for express-rate-limit and 'secure' cookies on Vercel
 app.set('trust proxy', 1);
 
+// ── Diagnostics ───────────────────────────────────────────────────────────────
+// Move these to the top to bypass middleware (CORS/Guest/Limiters) for testing
+app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date().toISOString() }));
+app.get('/api/ping', (req, res) => res.json({ success: true, message: 'pong' }));
+
 // ── Vercel Parallel Path ─────────────────────────────────────────────────────
-// Enable Guest Mode if process.env.GUEST_MODE is true
-app.use(guestAuth);
+// Enable Guest Mode if process.env.GUEST_MODE is true. 
+// Note: We only apply this to subsequent routes.
+app.use((req, res, next) => {
+  // Simple safety wrapper for async guestAuth
+  guestAuth(req, res, next).catch(err => {
+    console.error('Guest Auth Error:', err);
+    next(); // Fall back to normal auth if guest fails
+  });
+});
 
 // ── Security headers ───────────────────────────────────────────────────────────
 app.use(helmet({
@@ -80,12 +92,7 @@ app.use('/api/songs', songRoutes);
 app.use('/api/playlists', playlistRoutes);
 app.use('/api/lyrics', lyricsRoutes);
 
-app.get('/health', (req, res) => res.json({
-  status: 'ok',
-  time: new Date().toISOString()
-}));
-
-app.get('/ping', (req, res) => res.json({ success: true, message: 'pong' }));
+// Health check moved to top for zero-dependency uptime monitoring
 
 // ── Serve Frontend in Production ─────────────────────────────────────────────
 if (process.env.NODE_ENV === 'production') {
