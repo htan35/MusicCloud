@@ -27,12 +27,13 @@ app.get('/api/ping', (req, res) => res.json({ success: true, message: 'pong' }))
 // ── Vercel Parallel Path ─────────────────────────────────────────────────────
 // Enable Guest Mode if process.env.GUEST_MODE is true. 
 // Note: We only apply this to subsequent routes.
-app.use((req, res, next) => {
-  // Simple safety wrapper for async guestAuth
-  guestAuth(req, res, next).catch(err => {
+app.use(async (req, res, next) => {
+  try {
+    await guestAuth(req, res, next);
+  } catch (err) {
     console.error('Guest Auth Error:', err);
-    next(); // Fall back to normal auth if guest fails
-  });
+    if (!res.headersSent) next();
+  }
 });
 
 // ── Security headers ───────────────────────────────────────────────────────────
@@ -115,7 +116,11 @@ app.use((req, res) => {
 // ── Global error handler ───────────────────────────────────────────────────────
 app.use((err, req, res, next) => {
   console.error('Unhandled error:', err);
-  res.status(500).json({ success: false, error: 'Internal server error' });
+  res.status(500).json({
+    success: false,
+    error: err.message || 'Internal server error',
+    stack: process.env.NODE_ENV === 'production' ? undefined : err.stack
+  });
 });
 
 // ── MongoDB ────────────────────────────────────────────────────────────────────
