@@ -33,6 +33,35 @@ function uploadToCloudinary(buffer, options) {
 }
 
 /**
+ * GET /api/songs/upload-signature
+ * Generates a signed upload signature for direct frontend-to-Cloudinary uploads.
+ * Bypasses Vercel's 5MB payload limit.
+ */
+router.get('/upload-signature', requireAuth, (req, res) => {
+    try {
+        const timestamp = Math.round(new Date().getTime() / 1000);
+        const folder = req.query.folder || 'musicplayer/audio';
+
+        // Use cloudinary utility to sign parameters
+        const signature = cloudinary.utils.api_sign_request(
+            { timestamp, folder },
+            process.env.CLOUDINARY_API_SECRET
+        );
+
+        res.json({
+            success: true,
+            signature,
+            timestamp,
+            cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+            api_key: process.env.CLOUDINARY_API_KEY,
+            folder
+        });
+    } catch (err) {
+        res.status(500).json({ success: false, error: 'Failed to generate signature' });
+    }
+});
+
+/**
  * GET /api/songs — List all songs
  * If authenticated, adds isLiked field per song.
  */
@@ -129,13 +158,20 @@ router.post('/:id/like', requireAuth, async (req, res) => {
 router.post('/', optionalAuth, uploadFields, async (req, res) => {
     let tempAudioPath = null;
     try {
-        const { title, artist, album, lyrics, duration } = req.body;
+        const {
+            title, artist, album, lyrics, duration,
+            audioUrl, audioPublicId,
+            coverUrl, coverPublicId,
+            videoUrl, videoPublicId
+        } = req.body;
 
         if (!title || !artist) {
             return res.status(400).json({ success: false, error: 'Title and artist are required' });
         }
-        if (!req.files?.audio) {
-            return res.status(400).json({ success: false, error: 'Audio file is required' });
+
+        // Validation: Must have EITHER a direct URL (from frontend upload) OR a file (from multer)
+        if (!audioUrl && !req.files?.audio) {
+            return res.status(400).json({ success: false, error: 'Audio file or URL is required' });
         }
 
         const songData = {
@@ -145,20 +181,31 @@ router.post('/', optionalAuth, uploadFields, async (req, res) => {
             owner: req.user?._id || null
         };
 
-        // Upload audio
-        const audioFile = req.files.audio[0];
-        const audioResult = await uploadToCloudinary(audioFile.buffer, {
-            folder: 'musicplayer/audio',
-            resource_type: 'video',
-            use_filename: true,
-            public_id: `audio_${Date.now()}`
-        });
-        songData.audioUrl = audioResult.secure_url;
-        songData.audioPublicId = audioResult.public_id;
-        songData.duration = parseFloat(duration) || audioResult.duration || 0;
+        // 1. Process Audio
+        if (audioUrl) {
+            // Direct Upload path
+            songData.audioUrl = audioUrl;
+            songData.audioPublicId = audioPublicId;
+            songData.duration = parseFloat(duration) || 0;
+        } else {
+            // Legacy Multer path
+            const audioFile = req.files.audio[0];
+            const audioResult = await uploadToCloudinary(audioFile.buffer, {
+                folder: 'musicplayer/audio',
+                resource_type: 'video',
+                use_filename: true,
+                public_id: `audio_${Date.now()}`
+            });
+            songData.audioUrl = audioResult.secure_url;
+            songData.audioPublicId = audioResult.public_id;
+            songData.duration = parseFloat(duration) || audioResult.duration || 0;
+        }
 
-        // Upload cover
-        if (req.files?.cover) {
+        // 2. Process Cover
+        if (coverUrl) {
+            songData.coverUrl = coverUrl;
+            songData.coverPublicId = coverPublicId;
+        } else if (req.files?.cover) {
             const coverResult = await uploadToCloudinary(req.files.cover[0].buffer, {
                 folder: 'musicplayer/covers',
                 resource_type: 'image',
@@ -168,8 +215,11 @@ router.post('/', optionalAuth, uploadFields, async (req, res) => {
             songData.coverPublicId = coverResult.public_id;
         }
 
-        // Upload video
-        if (req.files?.video) {
+        // 3. Process Video
+        if (videoUrl) {
+            songData.videoUrl = videoUrl;
+            songData.videoPublicId = videoPublicId;
+        } else if (req.files?.video) {
             const videoResult = await uploadToCloudinary(req.files.video[0].buffer, {
                 folder: 'musicplayer/video',
                 resource_type: 'video'
@@ -178,14 +228,21 @@ router.post('/', optionalAuth, uploadFields, async (req, res) => {
             songData.videoPublicId = videoResult.public_id;
         }
 
-        // Process lyrics
+        // 4. Process lyrics (Async AI sync stays the same)
         if (lyrics && lyrics.trim()) {
             songData.rawLyrics = lyrics;
-            tempAudioPath = path.join(os.tmpdir(), `audio_${Date.now()}.mp3`);
-            fs.writeFileSync(tempAudioPath, audioFile.buffer);
-            const { syncedLyrics, lyricsType } = await processLyrics(lyrics, songData.duration, tempAudioPath);
-            songData.syncedLyrics = syncedLyrics;
-            songData.lyricsType = lyricsType;
+            // Only attempt AI sync if we have a buffer (not possible with direct URLs unless we fetch it, 
+            // but we'll stick to basic lyrics for direct uploads for now or assume durations are passed)
+            if (!audioUrl && req.files?.audio) {
+                tempAudioPath = path.join(os.tmpdir(), `audio_${Date.now()}.mp3`);
+                fs.writeFileSync(tempAudioPath, req.files.audio[0].buffer);
+                const { syncedLyrics, lyricsType } = await processLyrics(lyrics, songData.duration, tempAudioPath);
+                songData.syncedLyrics = syncedLyrics;
+                songData.lyricsType = lyricsType;
+            } else {
+                // If it's a direct URL, we just store as plain/synced if formatted
+                songData.lyricsType = lyrics.includes('[00:') ? 'lrc' : 'plain';
+            }
         }
 
         const song = await Song.create(songData);

@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import axios from 'axios';
 import { songApi } from '../utils/api';
 
 export default function UploadModal({ onClose, onSuccess }) {
@@ -18,6 +19,32 @@ export default function UploadModal({ onClose, onSuccess }) {
         setFiles(prev => ({ ...prev, [key]: file }));
     };
 
+    const uploadToCloudinary = async (file, folder, resourceType = 'auto', stepWeight = 33) => {
+        if (!file) return null;
+
+        const { signature, timestamp, cloud_name, api_key } = await songApi.getUploadSignature(folder);
+
+        const fd = new FormData();
+        fd.append('file', file);
+        fd.append('api_key', api_key);
+        fd.append('timestamp', timestamp);
+        fd.append('signature', signature);
+        fd.append('folder', folder);
+
+        const { data } = await axios.post(
+            `https://api.cloudinary.com/v1_1/${cloud_name}/${resourceType}/upload`,
+            fd,
+            {
+                onUploadProgress: (e) => {
+                    const fileProgress = Math.round((e.loaded / e.total) * 100);
+                    // This is a rough estimation of total progress
+                    setProgress(prev => Math.max(prev, Math.min(95, prev + (fileProgress / 100) * stepWeight)));
+                }
+            }
+        );
+        return data;
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!form.title || !form.artist || !files.audio) {
@@ -27,22 +54,48 @@ export default function UploadModal({ onClose, onSuccess }) {
 
         setUploading(true);
         setError('');
+        setProgress(5);
 
         try {
-            const fd = new FormData();
-            fd.append('title', form.title);
-            fd.append('artist', form.artist);
-            fd.append('album', form.album);
-            fd.append('lyrics', form.lyrics);
-            fd.append('audio', files.audio);
-            if (files.cover) fd.append('cover', files.cover);
-            if (files.video) fd.append('video', files.video);
+            // 1. Direct Upload Audio
+            const audioData = await uploadToCloudinary(files.audio, 'musicplayer/audio', 'video', 60);
+            setProgress(65);
 
-            const result = await songApi.upload(fd, setProgress);
+            // 2. Direct Upload Cover
+            let coverData = null;
+            if (files.cover) {
+                coverData = await uploadToCloudinary(files.cover, 'musicplayer/covers', 'image', 15);
+            }
+            setProgress(80);
+
+            // 3. Direct Upload Video
+            let videoData = null;
+            if (files.video) {
+                videoData = await uploadToCloudinary(files.video, 'musicplayer/video', 'video', 15);
+            }
+            setProgress(95);
+
+            // 4. Save to Database
+            const result = await songApi.save({
+                title: form.title,
+                artist: form.artist,
+                album: form.album,
+                lyrics: form.lyrics,
+                audioUrl: audioData.secure_url,
+                audioPublicId: audioData.public_id,
+                duration: audioData.duration,
+                coverUrl: coverData?.secure_url,
+                coverPublicId: coverData?.public_id,
+                videoUrl: videoData?.secure_url,
+                videoPublicId: videoData?.public_id
+            });
+
+            setProgress(100);
             onSuccess(result.song);
             onClose();
         } catch (err) {
-            setError(err.response?.data?.error || 'Upload failed. Please try again.');
+            console.error('Direct Upload Error:', err);
+            setError(err.response?.data?.error || err.message || 'Upload failed. Please try again.');
         } finally {
             setUploading(false);
         }

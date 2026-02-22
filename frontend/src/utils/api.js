@@ -36,6 +36,14 @@ export const songApi = {
         });
         return data;
     },
+    save: async (songData) => {
+        const { data } = await api.post('/songs', songData);
+        return data;
+    },
+    getUploadSignature: async (folder) => {
+        const { data } = await api.get('/songs/upload-signature', { params: { folder } });
+        return data;
+    },
     update: async (id, updates) => {
         const { data } = await api.patch(`/songs/${id}`, updates);
         return data;
