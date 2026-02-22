@@ -479,6 +479,18 @@ export default function Library({ activeView, setActiveView, selectedPlaylistId,
                             </>
                         )}
 
+                        {/* Playlists grid (only on mobile library view) */}
+                        {isMobile && !selectedPlaylistId && activeView === 'library' && !selectedAlbum && !search && playlists.length > 0 && (
+                            <>
+                                <h2 className="text-lg font-black tracking-tight text-[var(--text-main)] mt-10 mb-4">Your Playlists</h2>
+                                <div className="grid gap-4 grid-cols-2">
+                                    {playlists.map(pl => (
+                                        <PlaylistCard key={pl._id} playlist={pl} onSelect={onSelectPlaylist} />
+                                    ))}
+                                </div>
+                            </>
+                        )}
+
                         {/* Albums grid (only on home/library views and if not filtering/viewing album) */}
                         {!selectedPlaylistId && (activeView === 'home' || activeView === 'library') && !selectedAlbum && !search && albums.length > 0 && (
                             <>
@@ -494,18 +506,6 @@ export default function Library({ activeView, setActiveView, selectedPlaylistId,
                                             songs={a.songs}
                                             onOpen={setSelectedAlbum}
                                         />
-                                    ))}
-                                </div>
-                            </>
-                        )}
-
-                        {/* Playlists grid (only on mobile library view) */}
-                        {isMobile && !selectedPlaylistId && activeView === 'library' && !selectedAlbum && !search && playlists.length > 0 && (
-                            <>
-                                <h2 className="text-lg font-black tracking-tight text-[var(--text-main)] mt-10 mb-4">Your Playlists</h2>
-                                <div className="grid gap-4 grid-cols-2">
-                                    {playlists.map(pl => (
-                                        <PlaylistCard key={pl._id} playlist={pl} onSelect={onSelectPlaylist} />
                                     ))}
                                 </div>
                             </>
