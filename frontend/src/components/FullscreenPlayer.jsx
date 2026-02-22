@@ -710,6 +710,9 @@ export default function FullscreenPlayer({ theme, onClose, isMobile }) {
                                                     const distance = Math.abs(index - currentLyricIndex);
                                                     const isActive = index === currentLyricIndex;
 
+                                                    const opacity = isActive ? 1 : distance === 1 ? 0.6 : 0.4;
+                                                    const scale = isActive ? 1.08 : distance === 1 ? 0.98 : 0.95;
+
                                                     return (
                                                         <button key={item.key} ref={isActive ? activeRef : null} onClick={() => seek(lyric.time)}
                                                             className="w-full text-left block leading-tight my-6 transition-all duration-700 origin-left"
