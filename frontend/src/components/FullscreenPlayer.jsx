@@ -587,7 +587,7 @@ export default function FullscreenPlayer({ theme, onClose }) {
                                     </div>
                                     <div className="flex-1 overflow-y-auto custom-scrollbar pr-2">
                                         {searching && <p className="text-sm py-4 italic" style={{ color: 'var(--text-muted-2)' }}>Searching...</p>}
-                                        {error && <p className="text-sm text-[#ff453a] py-4">{error}</p>}
+                                        {error && <p className="text-sm text-[#ff453a] py-4">{typeof error === 'string' ? error : (error?.message || JSON.stringify(error))}</p>}
                                         {!previewLyrics ? (
                                             <div className="space-y-3">
                                                 {searchResults.map(res => (
@@ -643,7 +643,7 @@ export default function FullscreenPlayer({ theme, onClose }) {
                                             {savingLyrics ? '💾 Saving...' : '💾 Save & Sync'}
                                         </button>
                                     </div>
-                                    {error && <p className="text-xs text-[#ff453a] text-center mb-2">{error}</p>}
+                                    {error && <p className="text-xs text-[#ff453a] text-center mb-2">{typeof error === 'string' ? error : (error?.message || JSON.stringify(error))}</p>}
                                 </div>
                             ) : importMode ? (
                                 <div className="flex-1 overflow-hidden flex flex-col px-6">
@@ -682,7 +682,7 @@ export default function FullscreenPlayer({ theme, onClose }) {
                                             {savingLyrics ? '⌛ Parsing...' : '✨ Import & Save'}
                                         </button>
                                     </div>
-                                    {error && <p className="text-xs text-[#ff453a] text-center mb-2">{error}</p>}
+                                    {error && <p className="text-xs text-[#ff453a] text-center mb-2">{typeof error === 'string' ? error : (error?.message || JSON.stringify(error))}</p>}
                                 </div>
                             ) : (
                                 <div className="flex-1 h-full min-w-0 flex flex-col relative overflow-hidden">

@@ -105,7 +105,7 @@ export default function PlaylistModal({ songId, onClose, onDone }) {
                 </form>
 
                 {/* Playlist list */}
-                {error && <p className="text-xs mb-3 text-center" style={{ color: '#ff453a' }}>{error}</p>}
+                {error && <p className="text-xs mb-3 text-center" style={{ color: '#ff453a' }}>{typeof error === 'string' ? error : (error?.message || JSON.stringify(error))}</p>}
 
                 <div className="space-y-1 max-h-60 overflow-y-auto pr-1 custom-scrollbar">
                     {loading ? (

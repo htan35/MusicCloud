@@ -104,7 +104,7 @@ export default function LyricsPanel({
                                     Cancel
                                 </button>
                             </div>
-                            {error && <p className="mt-3 text-xs text-center" style={{ color: '#ff453a' }}>{error}</p>}
+                            {error && <p className="mt-3 text-xs text-center" style={{ color: '#ff453a' }}>{typeof error === 'string' ? error : (error?.message || JSON.stringify(error))}</p>}
                         </div>
                     ) : editMode ? (
                         <div>
@@ -151,7 +151,7 @@ export default function LyricsPanel({
                             </div>
 
                             {error && (
-                                <p className="mt-3 text-xs text-center" style={{ color: '#ff453a' }}>{error}</p>
+                                <p className="mt-3 text-xs text-center" style={{ color: '#ff453a' }}>{typeof error === 'string' ? error : (error?.message || JSON.stringify(error))}</p>
                             )}
                         </div>
                     ) : previewLyrics ? (
@@ -347,7 +347,7 @@ export default function LyricsPanel({
                             {error && (
                                 <div className="mt-4 p-3 rounded-xl text-sm text-center"
                                     style={{ background: 'var(--accent-muted)', color: '#ff453a' }}>
-                                    {error}
+                                    {typeof error === 'string' ? error : (error?.message || JSON.stringify(error))}
                                 </div>
                             )}
                         </div>

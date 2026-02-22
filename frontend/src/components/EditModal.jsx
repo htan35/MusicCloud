@@ -223,7 +223,7 @@ export default function EditModal({ song, onClose, onSaved, initialTab = 'info' 
 
                     {error && (
                         <p className="text-xs rounded-lg px-3 py-2" style={{ background: 'rgba(255,69,58,0.1)', color: '#ff453a' }}>
-                            {error}
+                            {typeof error === 'string' ? error : (error?.message || JSON.stringify(error))}
                         </p>
                     )}
 

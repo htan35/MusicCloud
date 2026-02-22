@@ -178,7 +178,7 @@ export default function UploadModal({ onClose, onSuccess }) {
                     {/* Error display */}
                     {error && (
                         <div className="bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2">
-                            <p className="text-red-400 text-sm">{error}</p>
+                            <p className="text-red-400 text-sm">{typeof error === 'string' ? error : (error?.message || JSON.stringify(error))}</p>
                         </div>
                     )}
 
