@@ -1,0 +1,9 @@
+{
+  "appId": "com.musiccloud.app",
+  "appName": "MusicCloud",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https",
+    "cleartext": true
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "name": "musiccloud",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "concurrently --kill-others-on-fail --prefix-colors \"cyan,magenta\" --names \"API ,Web\" \"npm run server\" \"npm run client\"",
+    "dev": "concurrently --kill-others-on-fail --prefix-colors \"cyan,magenta\" --names \"API ,Web\" \"npm run server\" \"npm run client\"",
+    "server": "cd backend && npm run dev",
+    "client": "cd frontend && npm run dev"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
