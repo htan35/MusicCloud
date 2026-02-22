@@ -6,6 +6,7 @@ import Sidebar from './components/Sidebar';
 import Library from './components/Library';
 import NowPlaying from './components/NowPlaying';
 import PlayerControls from './components/PlayerControls';
+import MobileNav from './components/MobileNav';
 import FullscreenPlayer from './components/FullscreenPlayer';
 import UploadModal from './components/UploadModal';
 import AuthPage from './pages/AuthPage';
@@ -82,6 +83,14 @@ function AppShell() {
         const stored = localStorage.getItem('mc_right_w');
         return stored ? parseInt(stored) : RIGHT_DEFAULT;
     });
+
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth < 768);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     // ── Left/Right drag handles ──────────────────────────────────────────────
     const dragging = useRef(null);
@@ -160,26 +169,28 @@ function AppShell() {
             <AudioEngine />
             <div className="flex h-screen overflow-hidden bg-[var(--bg-body)] text-[var(--text-main)]">
 
-                {/* Left: Sidebar */}
-                <div className="relative flex-shrink-0 h-full" style={{ width: sidebarWidth }}>
-                    <Sidebar
-                        activeView={activeView}
-                        setActiveView={(v) => { setActiveView(v); setSelectedPlaylistId(null); }}
-                        onSelectPlaylist={(id) => { setSelectedPlaylistId(id); setActiveView('playlist'); }}
-                        selectedPlaylistId={selectedPlaylistId}
-                        refreshKey={refreshKey}
-                    />
+                {/* Left: Sidebar (Hidden on mobile, accessible via Bottom Nav later) */}
+                {!isMobile && (
+                    <div className="relative flex-shrink-0 h-full" style={{ width: sidebarWidth }}>
+                        <Sidebar
+                            activeView={activeView}
+                            setActiveView={(v) => { setActiveView(v); setSelectedPlaylistId(null); }}
+                            onSelectPlaylist={(id) => { setSelectedPlaylistId(id); setActiveView('playlist'); }}
+                            selectedPlaylistId={selectedPlaylistId}
+                            refreshKey={refreshKey}
+                        />
 
-                    {/* Left drag handle */}
-                    <div
-                        onMouseDown={onLeftMouseDown}
-                        className="absolute top-0 right-0 h-full w-1 cursor-col-resize z-20 group"
-                        style={{ background: 'transparent' }}
-                    >
-                        <div className="h-full w-0.5 ml-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
-                            style={{ background: 'var(--accent)' }} />
+                        {/* Left drag handle */}
+                        <div
+                            onMouseDown={onLeftMouseDown}
+                            className="absolute top-0 right-0 h-full w-1 cursor-col-resize z-20 group"
+                            style={{ background: 'transparent' }}
+                        >
+                            <div className="h-full w-0.5 ml-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                                style={{ background: 'var(--accent)' }} />
+                        </div>
                     </div>
-                </div>
+                )}
 
                 {/* Center: Library */}
                 <div className="flex-1 h-full overflow-hidden flex flex-col min-w-0 bg-[var(--bg-body)]">
@@ -190,27 +201,30 @@ function AppShell() {
                         onUpload={() => setShowUpload(true)}
                         theme={theme}
                         setTheme={setTheme}
+                        isMobile={isMobile}
                     />
 
                     {/* Bottom player bar (Contained in center column) */}
-                    <PlayerControls onFullscreen={() => setShowFullscreen(true)} />
+                    <PlayerControls onFullscreen={() => setShowFullscreen(true)} isMobile={isMobile} />
                 </div>
 
-                {/* Right: Now Playing (resizable) */}
-                <div className="relative h-full flex-shrink-0 flex flex-col"
-                    style={{ width: rightWidth, borderLeft: '1px solid var(--border-main)', background: 'var(--bg-sidebar)' }}>
-                    {/* Right drag handle */}
-                    <div
-                        onMouseDown={onRightMouseDown}
-                        className="absolute top-0 left-0 h-full w-1 cursor-col-resize z-20 group"
-                        style={{ background: 'transparent' }}
-                    >
-                        <div className="h-full w-0.5 ml-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
-                            style={{ background: 'var(--accent)' }} />
+                {/* Right: Now Playing (Hidden on mobile) */}
+                {!isMobile && (
+                    <div className="relative h-full flex-shrink-0 flex flex-col"
+                        style={{ width: rightWidth, borderLeft: '1px solid var(--border-main)', background: 'var(--bg-sidebar)' }}>
+                        {/* Right drag handle */}
+                        <div
+                            onMouseDown={onRightMouseDown}
+                            className="absolute top-0 left-0 h-full w-1 cursor-col-resize z-20 group"
+                            style={{ background: 'transparent' }}
+                        >
+                            <div className="h-full w-0.5 ml-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                                style={{ background: 'var(--accent)' }} />
+                        </div>
+
+                        <NowPlaying onFullscreen={() => setShowFullscreen(true)} />
                     </div>
-
-                    <NowPlaying onFullscreen={() => setShowFullscreen(true)} />
-                </div>
+                )}
             </div>
 
             {/* Upload modal */}
@@ -226,6 +240,14 @@ function AppShell() {
                 <FullscreenPlayer
                     theme={theme}
                     onClose={() => setShowFullscreen(false)}
+                />
+            )}
+
+            {/* Mobile Bottom Navigation */}
+            {isMobile && (
+                <MobileNav
+                    activeView={activeView}
+                    setActiveView={setActiveView}
                 />
             )}
         </>

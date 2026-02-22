@@ -347,7 +347,13 @@ export default function Library({ activeView, selectedPlaylistId, onUpload, them
             </div>
 
             {/* Content */}
-            <div className="flex-1 overflow-y-auto px-6 pb-6" style={{ scrollbarWidth: 'thin' }}>
+            <div
+                className="flex-1 overflow-y-auto px-6"
+                style={{
+                    scrollbarWidth: 'thin',
+                    paddingBottom: isMobile ? 'calc(var(--nav-bottom-height) + 120px)' : '32px'
+                }}
+            >
                 {error && (
                     <div className="mt-4 p-3 rounded-xl text-sm" style={{ background: 'rgba(255,69,58,0.1)', color: '#ff453a' }}>
                         {typeof error === 'string' ? error : (error?.message || JSON.stringify(error))}
@@ -426,7 +432,7 @@ export default function Library({ activeView, selectedPlaylistId, onUpload, them
                         {!selectedPlaylistId && activeView !== 'liked' && !selectedAlbum && !search && albums.length > 0 && (
                             <>
                                 <h2 className="text-lg font-black tracking-tight text-[var(--text-main)] mt-10 mb-4">Your Collection</h2>
-                                <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))' }}>
+                                <div className={`grid gap-4 ${isMobile ? 'grid-cols-2' : ''}`} style={!isMobile ? { gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))' } : {}}>
                                     {albums.map(a => (
                                         <AlbumCard
                                             key={a.album}

@@ -1,7 +1,7 @@
 import { usePlayer } from '../context/PlayerContext';
 import { formatTime } from '../utils/format';
 
-export default function PlayerControls({ onFullscreen }) {
+export default function PlayerControls({ onFullscreen, isMobile }) {
     const {
         currentSong, isPlaying, isLoading,
         currentTime, duration, volume, isMuted,
@@ -27,6 +27,53 @@ export default function PlayerControls({ onFullscreen }) {
     if (!currentSong) return null;
 
     const loopTitle = loop === 'none' ? 'Loop Off' : loop === 'all' ? 'Loop All' : 'Loop One';
+
+    if (isMobile) {
+        return (
+            <div
+                className="fixed bottom-0 left-0 right-0 z-40 px-4 pb-[calc(var(--safe-area-bottom)+12px)] pt-3"
+                style={{
+                    background: 'var(--bg-player)',
+                    backdropFilter: 'blur(var(--glass-blur))',
+                    WebkitBackdropFilter: 'blur(var(--glass-blur))',
+                    borderTop: '1px solid var(--border-main)',
+                }}
+            >
+                {/* Seek bar (Mini) */}
+                <div className="absolute top-0 left-0 right-0 h-0.5 bg-[var(--border-main)]">
+                    <div
+                        className="h-full bg-[var(--accent)]"
+                        style={{ width: `${progress}%` }}
+                    />
+                </div>
+
+                <div className="flex items-center justify-between" onClick={onFullscreen}>
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                        <img
+                            src={`${currentSong.coverUrl}?t=${new Date(currentSong.updatedAt || currentSong.createdAt).getTime()}`}
+                            alt={currentSong.title}
+                            className="w-10 h-10 rounded-lg object-cover"
+                        />
+                        <div className="min-w-0">
+                            <p className="text-sm font-bold text-[var(--text-main)] truncate">{currentSong.title}</p>
+                            <p className="text-xs truncate" style={{ color: 'var(--text-muted)' }}>{currentSong.artist}</p>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
+                        <button onClick={skipPrev} className="p-2 text-[var(--text-muted)]"><PrevIcon /></button>
+                        <button
+                            onClick={togglePlay}
+                            className="w-10 h-10 rounded-full flex items-center justify-center bg-[var(--text-main)]"
+                        >
+                            {isPlaying ? <PauseIcon color="var(--bg-body)" /> : <PlayIcon color="var(--bg-body)" />}
+                        </button>
+                        <button onClick={skipNext} className="p-2 text-[var(--text-muted)]"><NextIcon /></button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div
