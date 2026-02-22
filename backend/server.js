@@ -31,7 +31,7 @@ app.use(helmet({
 // ── CORS ───────────────────────────────────────────────────────────────────────
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow if no origin (mobile) or if it's a known environment
+    // Reflect the origin back if it's from localhost or Vercel
     if (!origin ||
       origin === 'http://localhost' ||
       origin === 'capacitor://localhost' ||
@@ -40,7 +40,10 @@ app.use(cors({
       origin.startsWith('http://192.168.')) {
       return callback(null, true);
     }
-    // Don't throw Error() - it triggers the global error handler (500)
+    // Reflective fallback: If it's production, we trust the proxy and reflect
+    if (process.env.NODE_ENV === 'production') {
+      return callback(null, true);
+    }
     callback(null, false);
   },
   credentials: true,
@@ -81,6 +84,8 @@ app.get('/health', (req, res) => res.json({
   status: 'ok',
   time: new Date().toISOString()
 }));
+
+app.get('/ping', (req, res) => res.json({ success: true, message: 'pong' }));
 
 // ── Serve Frontend in Production ─────────────────────────────────────────────
 if (process.env.NODE_ENV === 'production') {

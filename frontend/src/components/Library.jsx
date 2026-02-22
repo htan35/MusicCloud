@@ -48,6 +48,16 @@ export default function Library({ activeView, selectedPlaylistId, onUpload, them
             setLoading(true);
             setError('');
 
+            // Connectivity Check: Verify the backend is even reachable before trying to fetch data
+            try {
+                const ping = await fetch('/api/ping');
+                if (!ping.ok) throw new Error(`API unreachable (HTTP ${ping.status})`);
+            } catch (pErr) {
+                setError(`Network Error: Backend is not responding. (${pErr.message})`);
+                setLoading(false);
+                return;
+            }
+
             if (selectedPlaylistId) {
                 // Load playlist songs
                 const data = await playlistApi.getAll();
