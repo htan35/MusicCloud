@@ -198,10 +198,12 @@ function AppShell() {
                         key={`${refreshKey}-${selectedPlaylistId}`}
                         activeView={activeView}
                         selectedPlaylistId={selectedPlaylistId}
+                        onSelectPlaylist={(id) => { setSelectedPlaylistId(id); setActiveView('playlist'); }}
                         onUpload={() => setShowUpload(true)}
                         theme={theme}
                         setTheme={setTheme}
                         isMobile={isMobile}
+                        refreshKey={refreshKey}
                     />
 
                     {/* Bottom player bar (Desktop only, inside center column) */}

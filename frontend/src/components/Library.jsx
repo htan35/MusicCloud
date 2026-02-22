@@ -21,7 +21,7 @@ import {
 } from '@dnd-kit/sortable';
 import { restrictToVerticalAxis, restrictToWindowEdges } from '@dnd-kit/modifiers';
 
-export default function Library({ activeView, selectedPlaylistId, onUpload, theme, setTheme, isMobile }) {
+export default function Library({ activeView, selectedPlaylistId, onSelectPlaylist, onUpload, theme, setTheme, isMobile, refreshKey }) {
     const { user, logout } = useAuth();
     const [songs, setSongs] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -31,6 +31,8 @@ export default function Library({ activeView, selectedPlaylistId, onUpload, them
     const [selectedAlbum, setSelectedAlbum] = useState(null);
     const [isEditingName, setIsEditingName] = useState(false);
     const [playlistName, setPlaylistName] = useState('');
+    const [playlists, setPlaylists] = useState([]);
+    const [creatingPlaylist, setCreatingPlaylist] = useState(false);
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -43,20 +45,22 @@ export default function Library({ activeView, selectedPlaylistId, onUpload, them
         })
     );
 
+    const fetchPlaylists = useCallback(async () => {
+        try {
+            const data = await playlistApi.getAll();
+            if (data.success) setPlaylists(data.playlists);
+        } catch (err) {
+            console.error('Failed to fetch playlists:', err);
+        }
+    }, []);
+
     const fetchSongs = useCallback(async () => {
         try {
             setLoading(true);
             setError('');
 
-            // Connectivity Check: Verify the backend is even reachable before trying to fetch data
-            try {
-                const ping = await fetch('/api/ping');
-                if (!ping.ok) throw new Error(`API unreachable (HTTP ${ping.status})`);
-            } catch (pErr) {
-                setError(`Network Error: Backend is not responding. (${pErr.message})`);
-                setLoading(false);
-                return;
-            }
+            // Fetch playlists as well if on mobile library view
+            if (isMobile) fetchPlaylists();
 
             if (selectedPlaylistId) {
                 // Load playlist songs
@@ -184,6 +188,21 @@ export default function Library({ activeView, selectedPlaylistId, onUpload, them
         return Object.values(albumMap);
     }, [songs, selectedAlbum, selectedPlaylistId, activeView]);
 
+    const handleCreatePlaylist = async () => {
+        const name = prompt('Enter playlist name:');
+        if (!name || !name.trim()) return;
+        setCreatingPlaylist(true);
+        try {
+            const d = await playlistApi.create(name.trim());
+            if (d.success) {
+                setPlaylists(p => [d.playlist, ...p]);
+            }
+        } catch (err) {
+            alert('Failed to create playlist');
+        }
+        setCreatingPlaylist(false);
+    };
+
     // View title
     const titles = {
         home: 'Home', new: 'New & Noteworthy', radio: 'Radio',
@@ -293,6 +312,18 @@ export default function Library({ activeView, selectedPlaylistId, onUpload, them
                                 </div>
                             )}
 
+                            {isMobile && !selectedAlbum && activeView === 'library' && (
+                                <button
+                                    onClick={handleCreatePlaylist}
+                                    className="flex items-center justify-center w-8 h-8 rounded-full transition-all border border-[var(--border-main)] hover:bg-[var(--bg-card)]"
+                                    style={{ color: 'var(--text-muted)' }}
+                                    title="Add Playlist"
+                                >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                    </svg>
+                                </button>
+                            )}
                             <button onClick={onUpload}
                                 className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold transition-all"
                                 style={{ background: 'var(--accent-muted)', color: 'var(--accent)', border: '1px solid var(--accent-muted)' }}
@@ -445,9 +476,57 @@ export default function Library({ activeView, selectedPlaylistId, onUpload, them
                                 </div>
                             </>
                         )}
+
+                        {/* Playlists grid (only on mobile library view) */}
+                        {isMobile && !selectedPlaylistId && activeView === 'library' && !selectedAlbum && !search && playlists.length > 0 && (
+                            <>
+                                <h2 className="text-lg font-black tracking-tight text-[var(--text-main)] mt-10 mb-4">Your Playlists</h2>
+                                <div className="grid gap-4 grid-cols-2">
+                                    {playlists.map(pl => (
+                                        <PlaylistCard key={pl._id} playlist={pl} onSelect={onSelectPlaylist} />
+                                    ))}
+                                </div>
+                            </>
+                        )}
                     </>
                 )}
             </div>
         </div>
+    );
+}
+
+function PlaylistCard({ playlist, onSelect }) {
+    const coverSong = playlist.songs?.[0];
+    return (
+        <button
+            onClick={() => onSelect(playlist._id)}
+            className="flex flex-col gap-2.5 p-3 rounded-2xl transition-all border border-[var(--border-main)] hover:bg-[var(--bg-card)] text-left group"
+            style={{ background: 'var(--bg-card)' }}
+        >
+            <div className="aspect-square rounded-xl overflow-hidden bg-[var(--bg-sidebar)] shadow-lg relative">
+                {coverSong?.coverUrl ? (
+                    <img
+                        src={`${coverSong.coverUrl}?t=${new Date(coverSong.updatedAt || coverSong.createdAt).getTime()}`}
+                        alt={playlist.name}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+                ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                        <svg className="w-8 h-8 text-[var(--text-muted-2)]" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M15 6H3v2h12V6zm0 4H3v2h12v-2zM3 16h8v-2H3v2zM17 6v8.18c-.31-.11-.65-.18-1-.18-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3V8h3V6h-5z" />
+                        </svg>
+                    </div>
+                )}
+                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-full bg-[var(--accent)] text-white flex items-center justify-center shadow-xl transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
+                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+                    </div>
+                </div>
+            </div>
+            <div className="min-w-0 pr-1">
+                <p className="text-sm font-bold text-[var(--text-main)] truncate tracking-tight">{playlist.name}</p>
+                <p className="text-[10px] font-medium" style={{ color: 'var(--text-muted)' }}>{playlist.songs?.length || 0} songs</p>
+            </div>
+        </button>
     );
 }
